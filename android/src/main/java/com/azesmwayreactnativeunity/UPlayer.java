@@ -3,6 +3,7 @@ package com.azesmwayreactnativeunity;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.widget.FrameLayout;
+import android.graphics.Color;
 
 import com.unity3d.player.*;
 
@@ -10,10 +11,15 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.SurfaceView;
+
 public class UPlayer {
     private static UnityPlayer unityPlayer;
 
-    public UPlayer(final Activity activity, final ReactNativeUnity.UnityPlayerCallback callback) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
+    public UPlayer(final Activity activity, final ReactNativeUnity.UnityPlayerCallback callback)
+            throws ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
         super();
         Class<?> _player = null;
 
@@ -78,6 +84,23 @@ public class UPlayer {
         unityPlayer.destroy();
     }
 
+    public void setColor(String color) {
+        try {
+            if (unityPlayer != null && unityPlayer.getView() instanceof ViewGroup) {
+                ViewGroup viewGroup = (ViewGroup) unityPlayer.getView();
+                for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                    View child = viewGroup.getChildAt(i);
+                    if (child instanceof SurfaceView) {
+                        child.setBackgroundColor(Color.parseColor(color));
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void requestFocusPlayer() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         try {
             Method getFrameLayout = unityPlayer.getClass().getMethod("getFrameLayout");
@@ -91,13 +114,19 @@ public class UPlayer {
         }
     }
 
-    public FrameLayout requestFrame() throws NoSuchMethodException {
+    public FrameLayout requestFrame() {
         try {
+            // Attempt to invoke getFrameLayout() for the newer UnityPlayer class
             Method getFrameLayout = unityPlayer.getClass().getMethod("getFrameLayout");
-
             return (FrameLayout) getFrameLayout.invoke(unityPlayer);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            return unityPlayer;
+            // If it is old UnityPlayer, use isInstance() and cast() to bypass incompatible
+            // type checks when compiling using newer versions of UnityPlayer
+            if (FrameLayout.class.isInstance(unityPlayer)) {
+                return FrameLayout.class.cast(unityPlayer);
+            } else {
+                return null;
+            }
         }
     }
 
@@ -106,7 +135,8 @@ public class UPlayer {
             Method setZ = unityPlayer.getClass().getMethod("setZ");
 
             setZ.invoke(unityPlayer, v);
-        } catch (NoSuchMethodException e) {}
+        } catch (NoSuchMethodException e) {
+        }
     }
 
     public Object getContextPlayer() {

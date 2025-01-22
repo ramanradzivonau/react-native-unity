@@ -19,7 +19,8 @@ public class ReactNativeUnityView extends FrameLayout {
     super(context);
   }
 
-  public void setUnityPlayer(UPlayer player) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+  public void setUnityPlayer(UPlayer player)
+      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
     this.view = player;
     addUnityViewToGroup(this);
   }
@@ -59,11 +60,11 @@ public class ReactNativeUnityView extends FrameLayout {
   @Override
   protected void onDetachedFromWindow() {
     if (!this.keepPlayerMounted) {
-        try {
-            addUnityViewToBackground();
-        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+      try {
+        addUnityViewToBackground();
+      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     super.onDetachedFromWindow();

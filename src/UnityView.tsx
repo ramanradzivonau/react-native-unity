@@ -8,7 +8,19 @@ type UnityViewContentUpdateEvent = Readonly<{
   message: string;
 }>;
 
+export type RNUnityMethods = {
+  postMessage: (
+    gameObject: string,
+    methodName: string,
+    message: string) => void
+  unloadUnity: () => void
+  pauseUnity: (pause: boolean) => void
+  resumeUnity: () => void
+  windowFocusChanged: (hasFocus: boolean) => void
+}
+
 type RNUnityViewProps = {
+  ref: React.Ref<RNUnityMethods>;
   androidKeepPlayerMounted?: boolean;
   fullScreen?: boolean;
   onUnityMessage?: DirectEventHandler<UnityViewContentUpdateEvent>;
@@ -19,7 +31,15 @@ type RNUnityViewProps = {
 type ComponentRef = InstanceType<typeof NativeUnityView>;
 
 export default class UnityView extends React.Component<RNUnityViewProps> {
-  ref = React.createRef<ComponentRef>();
+  ref: React.RefObject<ComponentRef>
+  timeoutId: null | NodeJS.Timeout;
+  // timeoutId = null;
+
+  constructor(props) {
+    super(props);
+    this.ref = React.createRef<ComponentRef>();
+    this.timeoutId = null;
+  }
 
   public postMessage = (
     gameObject: string,
@@ -34,6 +54,12 @@ export default class UnityView extends React.Component<RNUnityViewProps> {
   public unloadUnity = () => {
     if (this.ref.current) {
       Commands.unloadUnity(this.ref.current);
+    }
+  };
+
+  public setColor = (color: string) => {
+    if (this.ref.current) {
+      Commands.setColor(this.ref.current, color);
     }
   };
 
@@ -63,8 +89,11 @@ export default class UnityView extends React.Component<RNUnityViewProps> {
     };
   }
 
+
   componentWillUnmount() {
     if (this.ref.current) {
+      Commands.setColor(this.ref.current, '#F8FBFC');
+      Commands.postMessage(this.ref.current, 'ABCLayout', 'Clear', '');
       Commands.unloadUnity(this.ref.current);
     }
   }

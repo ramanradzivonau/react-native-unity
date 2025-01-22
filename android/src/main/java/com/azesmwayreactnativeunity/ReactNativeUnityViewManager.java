@@ -8,6 +8,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.azesmwayreactnativeunity.ReactNativeUnity.UnityPlayerCallback;
 import com.facebook.infer.annotation.Assertions;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -25,7 +26,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 @ReactModule(name = ReactNativeUnityViewManager.NAME)
-public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec<ReactNativeUnityView> implements LifecycleEventListener, View.OnAttachStateChangeListener {
+public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec<ReactNativeUnityView>
+    implements LifecycleEventListener, View.OnAttachStateChangeListener {
   ReactApplicationContext context;
   static ReactNativeUnityView view;
   public static final String NAME = "RNUnityView";
@@ -49,34 +51,39 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
     view.addOnAttachStateChangeListener(this);
 
     if (getPlayer() != null) {
-        try {
-            view.setUnityPlayer(getPlayer());
-        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {}
+      try {
+        view.setUnityPlayer(getPlayer());
+      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+      }
     } else {
-        try {
-            createPlayer(context.getCurrentActivity(), new UnityPlayerCallback() {
-              @Override
-              public void onReady() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-                view.setUnityPlayer(getPlayer());
-              }
+      try {
+        createPlayer(context.getCurrentActivity(), new UnityPlayerCallback() {
+          @Override
+          public void onReady() throws InvocationTargetException,
+              NoSuchMethodException, IllegalAccessException {
+            view.setUnityPlayer(getPlayer());
+          }
 
-              @Override
-              public void onUnload() {
-                WritableMap data = Arguments.createMap();
-                data.putString("message", "MyMessage");
-                ReactContext reactContext = (ReactContext) view.getContext();
-                reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(view.getId(), "onPlayerUnload", data);
-              }
+          @Override
+          public void onUnload() {
+            WritableMap data = Arguments.createMap();
+            data.putString("message", "MyMessage");
+            ReactContext reactContext = (ReactContext) view.getContext();
+            reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(view.getId(),
+                "onPlayerUnload", data);
+          }
 
-              @Override
-              public void onQuit() {
-                WritableMap data = Arguments.createMap();
-                data.putString("message", "MyMessage");
-                ReactContext reactContext = (ReactContext) view.getContext();
-                reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(view.getId(), "onPlayerQuit", data);
-              }
-            });
-        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {}
+          @Override
+          public void onQuit() {
+            WritableMap data = Arguments.createMap();
+            data.putString("message", "MyMessage");
+            ReactContext reactContext = (ReactContext) view.getContext();
+            reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(view.getId(),
+                "onPlayerQuit", data);
+          }
+        });
+      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+      }
     }
 
     return view;
@@ -110,6 +117,10 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
       case "unloadUnity":
         unloadUnity(view);
         return;
+      case "setColor":
+        assert args != null;
+        setColor(view, args.getString(0));
+        return;
       case "pauseUnity":
         assert args != null;
         pauseUnity(view, args.getBoolean(0));
@@ -123,9 +134,9 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
         return;
       default:
         throw new IllegalArgumentException(String.format(
-          "Unsupported command %s received by %s.",
-          commandType,
-          getClass().getSimpleName()));
+            "Unsupported command %s received by %s.",
+            commandType,
+            getClass().getSimpleName()));
     }
   }
 
@@ -133,6 +144,13 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
   public void unloadUnity(ReactNativeUnityView view) {
     if (isUnityReady()) {
       unload();
+    }
+  }
+
+  public void setColor(ReactNativeUnityView view, String color) {
+    if (isUnityReady()) {
+      assert getPlayer() != null;
+      getPlayer().setColor(color);
     }
   }
 
@@ -219,7 +237,8 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
   }
 
   @Override
-  public void onViewDetachedFromWindow(View v) {}
+  public void onViewDetachedFromWindow(View v) {
+  }
 
   @ReactProp(name = "androidKeepPlayerMounted", defaultBoolean = false)
   public void setAndroidKeepPlayerMounted(ReactNativeUnityView view, boolean keepPlayerMounted) {

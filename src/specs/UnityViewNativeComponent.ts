@@ -23,6 +23,7 @@ export interface NativeCommands {
     message: string
   ) => void;
   unloadUnity: (viewRef: React.ElementRef<HostComponent<NativeProps>>) => void;
+  setColor: (viewRef: React.ElementRef<HostComponent<NativeProps>>, color: string) => void;
   pauseUnity: (
     viewRef: React.ElementRef<HostComponent<NativeProps>>,
     pause: boolean
@@ -38,6 +39,7 @@ export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
   supportedCommands: [
     'postMessage',
     'unloadUnity',
+    'setColor',
     'pauseUnity',
     'resumeUnity',
     'windowFocusChanged',

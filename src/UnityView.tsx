@@ -20,7 +20,7 @@ export type RNUnityMethods = {
 }
 
 type RNUnityViewProps = {
-  ref: React.Ref<RNUnityMethods>;
+  // ref: React.Ref<RNUnityMethods>;
   androidKeepPlayerMounted?: boolean;
   fullScreen?: boolean;
   onUnityMessage?: DirectEventHandler<UnityViewContentUpdateEvent>;
@@ -31,15 +31,7 @@ type RNUnityViewProps = {
 type ComponentRef = InstanceType<typeof NativeUnityView>;
 
 export default class UnityView extends React.Component<RNUnityViewProps> {
-  ref: React.RefObject<ComponentRef>
-  timeoutId: null | NodeJS.Timeout;
-  // timeoutId = null;
-
-  constructor(props) {
-    super(props);
-    this.ref = React.createRef<ComponentRef>();
-    this.timeoutId = null;
-  }
+  ref = React.createRef<ComponentRef>();
 
   public postMessage = (
     gameObject: string,

@@ -22,6 +22,7 @@ public class UPlayer {
             throws ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
         super();
         Class<?> _player = null;
+        setColor("#F8FBFC");
 
         try {
             _player = Class.forName("com.unity3d.player.UnityPlayerForActivityOrService");
@@ -44,7 +45,7 @@ public class UPlayer {
     }
 
     public static void UnitySendMessage(String gameObject, String methodName, String message) {
-        UnityPlayer.UnitySendMessage(gameObject, methodName, message);
+        unityPlayer.UnitySendMessage(gameObject, methodName, message);
     }
 
     public void pause() {
@@ -86,7 +87,7 @@ public class UPlayer {
 
     public void setColor(String color) {
         try {
-            if (unityPlayer != null && unityPlayer.getView() instanceof ViewGroup) {
+            if (unityPlayer.getView() instanceof ViewGroup) {
                 ViewGroup viewGroup = (ViewGroup) unityPlayer.getView();
                 for (int i = 0; i < viewGroup.getChildCount(); i++) {
                     View child = viewGroup.getChildAt(i);
@@ -102,11 +103,15 @@ public class UPlayer {
     }
 
     public void requestFocusPlayer() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        if (unityPlayer == null) {
+            return;
+        }
         try {
             Method getFrameLayout = unityPlayer.getClass().getMethod("getFrameLayout");
-
-            FrameLayout frame = (FrameLayout) this.requestFrame();
-            frame.requestFocus();
+            FrameLayout frame = (FrameLayout) requestFrame();
+            if (frame != null) {
+                frame.requestFocus();
+            }
         } catch (NoSuchMethodException e) {
             Method requestFocus = unityPlayer.getClass().getMethod("requestFocus");
 

@@ -25,6 +25,10 @@ public class ReactNativeUnityView extends FrameLayout {
     addUnityViewToGroup(this);
   }
 
+  public void setUnityColor(String color) {
+    view.setColor(color);
+  }
+
   @Override
   public void onWindowFocusChanged(boolean hasWindowFocus) {
     super.onWindowFocusChanged(hasWindowFocus);
@@ -59,14 +63,6 @@ public class ReactNativeUnityView extends FrameLayout {
 
   @Override
   protected void onDetachedFromWindow() {
-    if (!this.keepPlayerMounted) {
-      try {
-        addUnityViewToBackground();
-      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
     super.onDetachedFromWindow();
   }
 }

@@ -24,6 +24,7 @@ import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import android.os.Handler;
 
 @ReactModule(name = ReactNativeUnityViewManager.NAME)
 public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec<ReactNativeUnityView>
@@ -31,6 +32,7 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
   ReactApplicationContext context;
   static ReactNativeUnityView view;
   public static final String NAME = "RNUnityView";
+  public static boolean _isUnityRendered = false;
 
   public ReactNativeUnityViewManager(ReactApplicationContext context) {
     super();
@@ -48,10 +50,13 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
   @Override
   public ReactNativeUnityView createViewInstance(@NonNull ThemedReactContext context) {
     view = new ReactNativeUnityView(this.context);
+    setColor(view, "#F8FBFC");
+  
     view.addOnAttachStateChangeListener(this);
 
     if (getPlayer() != null) {
       try {
+        _isUnityRendered = true;
         view.setUnityPlayer(getPlayer());
       } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
       }
@@ -62,10 +67,15 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
           public void onReady() throws InvocationTargetException,
               NoSuchMethodException, IllegalAccessException {
             view.setUnityPlayer(getPlayer());
+            _isUnityRendered = true;
           }
 
           @Override
           public void onUnload() {
+            if (_isUnityRendered) {
+              onHostResume();
+              windowFocusChanged(view, true);
+            }
             WritableMap data = Arguments.createMap();
             data.putString("message", "MyMessage");
             ReactContext reactContext = (ReactContext) view.getContext();
@@ -143,6 +153,8 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
   @Override
   public void unloadUnity(ReactNativeUnityView view) {
     if (isUnityReady()) {
+      setColor(view, "#F8FBFC");
+      _isUnityRendered = false;
       unload();
     }
   }
@@ -167,6 +179,10 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
     if (isUnityReady()) {
       assert getPlayer() != null;
       getPlayer().resume();
+      try {
+        getPlayer().requestFocusPlayer();
+      } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+      }
     }
   }
 
@@ -179,6 +195,10 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
   }
 
   public static void sendMessageToMobileApp(String message) {
+    if (message.equals("Rendered")) {
+      view.setUnityColor("#00000000");
+    }
+    
     WritableMap data = Arguments.createMap();
     data.putString("message", message);
     ReactContext reactContext = (ReactContext) view.getContext();
@@ -187,6 +207,7 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
 
   @Override
   public void onDropViewInstance(ReactNativeUnityView view) {
+    UPlayer.UnitySendMessage("ABCLayout", "Clear", "");
     view.removeOnAttachStateChangeListener(this);
     super.onDropViewInstance(view);
   }
@@ -210,10 +231,10 @@ public class ReactNativeUnityViewManager extends ReactNativeUnityViewManagerSpec
 
   @Override
   public void onHostDestroy() {
-    if (isUnityReady()) {
-      assert getPlayer() != null;
-      getPlayer().destroy();
-    }
+    // if (isUnityReady()) {
+    // assert getPlayer() != null;
+    // getPlayer().destroy();
+    // }
   }
 
   private void restoreUnityUserState() {
